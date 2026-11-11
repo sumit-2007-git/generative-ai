@@ -82,27 +82,27 @@ sequenceDiagram
 
 ### 1. React Frontend (The Orchestrator)
 The client browser runs the user interface and coordinates the real-time experience:
-* **Audio Recording & Encoding:** Captures mic input and posts PCM stream chunks via [useAudioRecorder.ts](file:///usr/local/google/home/ankurwahi/antigravity/gemini-live-multimodal-avatar/ecommerce/frontend/src/hooks/useAudioRecorder.ts).
-* **Worker Thread Routing:** [networkWorker.ts](file:///usr/local/google/home/ankurwahi/antigravity/gemini-live-multimodal-avatar/ecommerce/frontend/src/workers/networkWorker.ts) runs the raw `@google/genai` WebSocket connections in a background thread to prevent blocking main UI rendering.
-* **Tool Call Interception:** [useMCPExecution.ts](file:///usr/local/google/home/ankurwahi/antigravity/gemini-live-multimodal-avatar/ecommerce/frontend/src/hooks/useMCPExecution.ts) hooks into the socket handler. It catches Gemini's `functionCall` instructions, calls the backend MCP endpoints, and returns the response payload back to the WebSocket session.
-* **Interactive Media Display:** [AvatarDisplay1P.tsx](file:///usr/local/google/home/ankurwahi/antigravity/gemini-live-multimodal-avatar/ecommerce/frontend/src/components/AvatarDisplay1P.tsx) listens to `'video-chunk-received'` events and renders the live-streamed virtual assistant (Vera) in an HTML5 `<video>` element using `mpegts.js`.
+* **Audio Recording & Encoding:** Captures mic input and posts PCM stream chunks via [useAudioRecorder.ts](../frontend/src/hooks/useAudioRecorder.ts).
+* **Worker Thread Routing:** [networkWorker.ts](../frontend/src/workers/networkWorker.ts) runs the raw `@google/genai` WebSocket connections in a background thread to prevent blocking main UI rendering.
+* **Tool Call Interception:** [useMCPExecution.ts](../frontend/src/hooks/useMCPExecution.ts) hooks into the socket handler. It catches Gemini's `functionCall` instructions, calls the backend MCP endpoints, and returns the response payload back to the WebSocket session.
+* **Interactive Media Display:** [AvatarDisplay1P.tsx](../frontend/src/components/AvatarDisplay1P.tsx) listens to `'video-chunk-received'` events and renders the live-streamed virtual assistant (Vera) in an HTML5 `<video>` element using `mpegts.js`.
 
 ### 2. FastAPI Backend
 The backend plays two distinct roles in the architecture:
-* **Secure WebSocket Proxy ([websocket.py](file:///usr/local/google/home/ankurwahi/antigravity/gemini-live-multimodal-avatar/ecommerce/backend/routes/websocket.py)):**
-  The client browser connects to `/api/live-avatar`. The proxy upgrades the request, obtains a secure Google OAuth Access Token via [auth.py](file:///usr/local/google/home/ankurwahi/antigravity/gemini-live-multimodal-avatar/ecommerce/backend/auth.py), qualifies the requested model path server-side, and initiates the secure upstream connection to Agent platform.
-* **MCP JSON-RPC Server ([mcp.py](file:///usr/local/google/home/ankurwahi/antigravity/gemini-live-multimodal-avatar/ecommerce/backend/routes/mcp.py)):**
+* **Secure WebSocket Proxy ([websocket.py](../backend/routes/websocket.py)):**
+  The client browser connects to `/api/live-avatar`. The proxy upgrades the request, obtains a secure Google OAuth Access Token via [auth.py](../backend/auth.py), qualifies the requested model path server-side, and initiates the secure upstream connection to Agent platform.
+* **MCP JSON-RPC Server ([mcp.py](../backend/routes/mcp.py)):**
   Exposes local capabilities (catalog search, shopping cart management, checkout) over a standardized protocol.
 
 ### 3. Model Context Protocol (MCP)
-Exposed at the `/api/mcp` endpoint in [mcp.py](file:///usr/local/google/home/ankurwahi/antigravity/gemini-live-multimodal-avatar/ecommerce/backend/routes/mcp.py):
+Exposed at the `/api/mcp` endpoint in [mcp.py](../backend/routes/mcp.py):
 1. **Tool Discovery (`tools/list`):** When the application starts, it queries the backend to see what tools are available. The server lists:
    * `search_products`: Search for products using semantic query text.
    * `add_to_cart`: Verify inventory and add items to a user's session cart.
    * `checkout_cart`: Finalize and place an order.
 2. **Tool Execution (`tools/call`):** Matches incoming methods to local services:
    * Generating search vector embeddings via Agent platform (`ai_client.models.embed_content`).
-   * Executing database queries on Spanner ([database.py](file:///usr/local/google/home/ankurwahi/antigravity/gemini-live-multimodal-avatar/ecommerce/backend/database.py)) like `search_products`, `add_to_cart`, or `checkout_cart`.
+   * Executing database queries on Spanner ([database.py](../backend/database.py)) like `search_products`, `add_to_cart`, or `checkout_cart`.
 
 ---
 
@@ -110,10 +110,10 @@ Exposed at the `/api/mcp` endpoint in [mcp.py](file:///usr/local/google/home/ank
 
 1. **User asks for a product:** The user says *"Show me coffee makers."*
 2. **Gemini Live decides to use a tool:** Gemini Live processes the voice audio and realizes it cannot answer without checking the catalog. It outputs a `functionCall` event for the tool `search_products` with the argument `query="coffee makers"`.
-3. **Frontend intercepts the call:** The frontend [useMCPExecution.ts](file:///usr/local/google/home/ankurwahi/antigravity/gemini-live-multimodal-avatar/ecommerce/frontend/src/hooks/useMCPExecution.ts#L35-L119) intercepts this request and calls [executeMCPTool](file:///usr/local/google/home/ankurwahi/antigravity/gemini-live-multimodal-avatar/ecommerce/frontend/src/api/tools.ts) which targets the backend's `/api/mcp` route.
-4. **FastAPI performs Vector Search ([mcp.py:L83-110](file:///usr/local/google/home/ankurwahi/antigravity/gemini-live-multimodal-avatar/ecommerce/backend/routes/mcp.py#L83-L110)):**
+3. **Frontend intercepts the call:** The frontend [useMCPExecution.ts](../frontend/src/hooks/useMCPExecution.ts#L42-L119) intercepts this request and calls [executeMCPTool](../frontend/src/api/tools.ts) which targets the backend's `/api/mcp` route.
+4. **FastAPI performs Vector Search ([mcp.py:L162-215](../backend/routes/mcp.py#L162-L215)):**
    * The backend generates a 768-dimension vector embedding of the text `"coffee makers"` using Gemini's embedding model.
-   * It queries **Cloud Spanner** using cosine similarity vector search ([database.py:L142-167](file:///usr/local/google/home/ankurwahi/antigravity/gemini-live-multimodal-avatar/ecommerce/backend/database.py#L142-L167)) to find the closest matching products in the database.
+   * It queries **Cloud Spanner** using cosine similarity vector search ([database.py:L29-83](../backend/database.py#L29-L83)) to find the closest matching products in the database.
    * It returns the product catalog records as JSON.
 5. **Results sent to Gemini:** The frontend sends these catalog records back to Gemini Live over the WebSocket connection.
 6. **Voice and Visual Render:** Gemini reads the catalog data, starts speaking (e.g. *"Here is the AeroBrew Smart Coffee Maker"*), and streams the avatar video. Simultaneously, the frontend renders the product cards on the screen, matching the timing of the voice response.

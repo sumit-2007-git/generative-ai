@@ -53,7 +53,7 @@ This project showcases a next-generation conversational shopping experience:
 
 ## Architecture
 
-For a detailed walkthrough, refer to [architecture_walkthrough.md](file:///usr/local/google/home/ankurwahi/generative-ai/gemini/multimodal-live-api/shopping-avatar/ecommerce/doc/architecture_walkthrough.md).
+For a detailed walkthrough, refer to [architecture_walkthrough.md](ecommerce/doc/architecture_walkthrough.md).
 
 ### Architecture Flow Diagram
 
@@ -339,7 +339,7 @@ Navigate to `http://localhost:8080` to access the full application.
 
 ## Deploying to Google Cloud Run
 
-The application is fully containerized using a multi-stage [Dockerfile](file:///usr/local/google/home/ankurwahi/generative-ai/gemini/multimodal-live-api/shopping-avatar/Dockerfile) that compiles the React frontend and packages it together with the FastAPI backend into a single image.
+The application is fully containerized using a multi-stage [Dockerfile](Dockerfile) that compiles the React frontend and packages it together with the FastAPI backend into a single image.
 
 ### Automated Deployment via deploy.sh
 
